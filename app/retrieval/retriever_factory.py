@@ -8,6 +8,7 @@ provider-specific details to the application layer.
 from app.ai.base_embedding import EmbeddingProvider
 from app.config import RETRIEVAL_PROVIDER
 from app.retrieval.base_retriever import RetrieverProvider
+from app.retrieval.providers.chroma_retriever import ChromaRetriever
 from app.retrieval.providers.faiss_retriever import FAISSRetriever
 
 

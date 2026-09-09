@@ -6,7 +6,7 @@ retrieval-friendly text representation and splitting the transcript
 into overlapping chunks.
 """
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def process(transcript):
@@ -28,9 +28,7 @@ def process(transcript):
     processed_transcript = ""
 
     for entry in transcript:
-        processed_transcript += (
-            f"Text: {entry.text} Start: {entry.start}\n"
-        )
+        processed_transcript += f"Text: {entry.text} Start: {entry.start}\n"
 
     return processed_transcript
 

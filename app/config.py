@@ -56,3 +56,6 @@ DECODING_METHOD = os.getenv("DECODING_METHOD", "greedy")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "7860"))
 SHARE = os.getenv("SHARE", "True").lower() == "true"
+
+CHROMA_COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "transcripts")
+CHROMA_PERSIST_DIRECTORY = os.getenv("CHROMA_PERSIST_DIRECTORY", "chroma_persist")

@@ -2,7 +2,7 @@
 Prompt templates used by the YouTube RAG Assistant.
 """
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 # =============================================================================
 # Summarization Prompt

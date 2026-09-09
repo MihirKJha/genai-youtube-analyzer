@@ -1,221 +1,137 @@
 # GenAI YouTube Analyzer
 
-AI-powered YouTube content analyzer that extracts video transcripts, generates concise summaries, and answers natural-language questions using semantic retrieval and configurable AI providers.
+AI-powered YouTube content analyzer that extracts video transcripts, generates concise summaries, and answers natural-language questions using semantic retrieval, FAISS, Chroma, LangChain, and IBM watsonx.ai.
 
-The project is designed with a provider-agnostic AI architecture so that local AI runtimes and cloud AI services can be used without changing the application layer.
+## ✨ Features
 
----
+- 🎥 **YouTube Transcript Extraction**
+  - Extracts English transcripts from YouTube videos.
+  - Supports standard YouTube and shortened `youtu.be` URLs.
 
-## 🚀 Features
+- 📝 **Transcript Summarization**
+  - Generates concise summaries from processed video transcripts.
+  - Supports configurable LLM providers.
 
-- Extract English transcripts from YouTube videos
-- Process and chunk transcripts for downstream AI workloads
-- Generate concise transcript summaries
-- Ask natural-language questions about video content
-- Perform semantic retrieval using FAISS
-- Generate answers using retrieved transcript context
-- Support configurable LLM providers
-- Support configurable embedding providers
-- Local AI inference through a reusable local runtime
-- IBM watsonx.ai integration
-- Environment-based configuration
-- Provider abstraction that allows future AI providers to be added without changing application capabilities
-- Gradio-based web interface
+- 💬 **Natural-Language Q&A**
+  - Ask questions about the video content.
+  - Retrieves semantically relevant transcript chunks before generating an answer.
+
+- 🔎 **Pluggable Retrieval**
+  - **Chroma** as the default vector store.
+  - **FAISS** as an alternative retrieval provider.
+  - Retrieval is abstracted behind a common interface.
+
+- 🤖 **Pluggable AI Providers**
+  - Local LLM and embedding models through Ollama.
+  - IBM watsonx.ai for cloud-based generation and embeddings.
+
+- ⚙️ **Environment-Based Configuration**
+  - AI providers, retrieval providers, models, endpoints, and application settings are configured through environment variables.
+
+- 🖥️ **Gradio Interface**
+  - Provides a simple web-based interface for processing videos, generating summaries, and asking questions.
 
 ---
 
 ## 🏗️ Architecture
 
-The application separates business capabilities from AI infrastructure through provider interfaces.
-
 ```text
-                         GenAI YouTube Analyzer
-                                  │
-                                  ▼
-                       ┌─────────────────────┐
-                       │ Application Layer   │
-                       │                     │
-                       │ • Summarization     │
-                       │ • Question Answering│
-                       │ • Retrieval         │
-                       └──────────┬──────────┘
-                                  │
-                    ┌─────────────┴─────────────┐
-                    │                           │
-                    ▼                           ▼
-             LLMProvider              EmbeddingProvider
-                    │                           │
-          ┌─────────┴─────────┐       ┌─────────┴─────────┐
-          ▼                   ▼       ▼                   ▼
-       Local AI           watsonx.ai  Local AI         watsonx.ai
-       Runtime             IBM Cloud  Runtime           IBM Cloud
+                         ┌───────────────────────┐
+                         │      Gradio UI        │
+                         └───────────┬───────────┘
+                                     │
+                                     ▼
+                       ┌─────────────────────────┐
+                       │ YouTube Analyzer Service│
+                       └────────────┬────────────┘
+                                    │
+                 ┌──────────────────┼──────────────────┐
+                 │                  │                  │
+                 ▼                  ▼                  ▼
+        ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐
+        │ YouTube        │  │ Transcript     │  │ AI Capabilities │
+        │ Ingestion      │  │ Processing     │  │                 │
+        └───────┬────────┘  └───────┬────────┘  └───────┬─────────┘
+                │                   │                   │
+                ▼                   ▼                   │
+        ┌────────────────┐  ┌────────────────┐          │
+        │ Transcript     │  │ Text Chunking  │          │
+        └────────────────┘  └───────┬────────┘          │
+                                    │                   │
+                                    ▼                   │
+                         ┌────────────────────┐          │
+                         │ Retriever Provider │◄─────────┘
+                         └─────────┬──────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                             │
+                    ▼                             ▼
+             ┌─────────────┐               ┌─────────────┐
+             │   Chroma    │               │    FAISS    │
+             │   Default   │               │ Alternative │
+             └─────────────┘               └─────────────┘
+                    │
+                    ▼
+             ┌─────────────────┐
+             │ Embedding       │
+             │ Provider        │
+             └────────┬────────┘
+                      │
+             ┌────────┴─────────┐
+             │                  │
+             ▼                  ▼
+      ┌─────────────┐    ┌─────────────┐
+      │ Local/Ollama│    │  watsonx.ai │
+      └─────────────┘    └─────────────┘
 ```
 
-### Processing Flow
+---
+
+## 🔄 Processing Flow
 
 ```text
 YouTube URL
     │
     ▼
-Transcript Extraction
+Extract Video ID
     │
     ▼
-Transcript Processing
+Fetch English Transcript
     │
     ▼
-Text Chunking
-    │
-    ├──────────────────────┐
-    │                      │
-    ▼                      ▼
-Summary Generation     Embedding Generation
-                           │
-                           ▼
-                      FAISS Vector Store
-                           │
-                           ▼
-                     Similarity Search
-                           │
-                           ▼
-                  Retrieved Transcript Context
-                           │
-                           ▼
-                      LLM Generation
-                           │
-                           ▼
-                         Answer
-```
-
----
-
-## 🔌 Provider Architecture
-
-The application does not directly depend on a specific LLM or embedding implementation.
-
-Instead, application capabilities depend on stable interfaces:
-
-```text
-LLMProvider
-    │
-    ├── LocalLLMProvider
-    └── WatsonxLLMProvider
-
-
-EmbeddingProvider
-    │
-    ├── LocalEmbeddingProvider
-    └── WatsonxEmbeddingProvider
-```
-
-This allows the same application architecture to support:
-
-- Local AI development
-- IBM watsonx.ai
-- Future cloud AI providers
-- Alternative local AI runtimes
-- Different LLMs
-- Different embedding models
-
-The goal is to treat AI models and runtimes as configurable infrastructure dependencies rather than application-level dependencies.
-
----
-
-## 🤖 AI Capabilities
-
-### Summarization
-
-The summarization capability receives the processed transcript and delegates text generation to the configured `LLMProvider`.
-
-```text
-Transcript
+Process Transcript
     │
     ▼
-Summary Prompt
+Split into Chunks
     │
     ▼
-LLMProvider
+Generate Embeddings
     │
     ▼
-Generated Summary
+Index in Selected Vector Store
+    │
+    ├───────────────┐
+    │               │
+    ▼               ▼
+  Chroma          FAISS
+    │               │
+    └───────┬───────┘
+            │
+            ▼
+      User Question
+            │
+            ▼
+   Semantic Similarity Search
+            │
+            ▼
+    Relevant Transcript Chunks
+            │
+            ▼
+       LLM Generation
+            │
+            ▼
+        Final Answer
 ```
-
-### Question Answering
-
-Question answering uses semantic retrieval before generation.
-
-```text
-User Question
-      │
-      ▼
-Embedding / Similarity Search
-      │
-      ▼
-Relevant Transcript Chunks
-      │
-      ▼
-Question + Retrieved Context
-      │
-      ▼
-LLMProvider
-      │
-      ▼
-Answer
-```
-
-This keeps RAG as an implementation detail of the question-answering capability rather than making it the identity of the product.
-
----
-
-## 🧠 Local AI Runtime
-
-The project is designed to work with a reusable local AI runtime rather than coupling the application directly to a particular runtime.
-
-The intended local architecture is:
-
-```text
-                    Local AI Runtime
-                           │
-                ┌──────────┴──────────┐
-                ▼                     ▼
-              Local LLM          Local Embeddings
-                │                     │
-                ▼                     ▼
-          LLMProvider          EmbeddingProvider
-```
-
-A local runtime can therefore be reused across multiple AI projects, including:
-
-- YouTube analysis
-- PDF/RAG applications
-- Semantic search
-- AI agents
-- Document intelligence
-- Question-answering systems
-- Future AI engineering experiments
-
-The current configuration is prepared for a local runtime through environment variables.
-
----
-
-## ☁️ IBM watsonx.ai
-
-The project also includes IBM watsonx.ai implementations for both generation and embeddings.
-
-```text
-Application
-     │
-     ▼
-Provider Interfaces
-     │
-     ├── WatsonxLLMProvider
-     │
-     └── WatsonxEmbeddingProvider
-              │
-              ▼
-        IBM watsonx.ai
-```
-
-Switching providers is configuration-driven rather than requiring changes to application capabilities.
 
 ---
 
@@ -225,7 +141,6 @@ Switching providers is configuration-driven rather than requiring changes to app
 genai-youtube-analyzer/
 │
 ├── app/
-│   │
 │   ├── ai/
 │   │   ├── __init__.py
 │   │   ├── base.py
@@ -259,7 +174,13 @@ genai-youtube-analyzer/
 │   │
 │   ├── retrieval/
 │   │   ├── __init__.py
-│   │   └── faiss_store.py
+│   │   ├── base_retriever.py
+│   │   ├── retriever_factory.py
+│   │   │
+│   │   └── providers/
+│   │       ├── __init__.py
+│   │       ├── chroma_retriever.py
+│   │       └── faiss_retriever.py
 │   │
 │   ├── ui/
 │   │   ├── __init__.py
@@ -274,170 +195,317 @@ genai-youtube-analyzer/
 │   ├── test_transcript.py
 │   └── test_retrieval.py
 │
-├── run.py
+├── main.py
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
 └── README.md
 ```
 
-### Architectural Responsibilities
+---
 
-| Component | Responsibility |
+## 🧩 Core Design
+
+### Provider Abstraction
+
+The application separates business capabilities from concrete AI implementations.
+
+```text
+                 ┌───────────────────┐
+                 │   LLMProvider     │
+                 └─────────┬─────────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+     LocalLLMProvider          WatsonxLLMProvider
+```
+
+The same approach is used for embeddings:
+
+```text
+              ┌──────────────────────┐
+              │  EmbeddingProvider   │
+              └──────────┬───────────┘
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+             ▼                       ▼
+   LocalEmbeddingProvider   WatsonxEmbeddingProvider
+```
+
+Retrieval follows the same abstraction:
+
+```text
+              ┌──────────────────────┐
+              │  RetrieverProvider   │
+              └──────────┬───────────┘
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+             ▼                       ▼
+       ChromaRetriever        FAISSRetriever
+```
+
+This allows the application layer to remain independent of the underlying provider implementation.
+
+---
+
+## 🔎 Retrieval Architecture
+
+The retrieval layer exposes a common interface:
+
+```python
+class RetrieverProvider(ABC):
+
+    @abstractmethod
+    def index(self, chunks: list[str]) -> None:
+        ...
+
+    @abstractmethod
+    def search(
+        self,
+        query: str,
+        k: int = 4,
+    ) -> list[str]:
+        ...
+```
+
+The application therefore does not need to know whether retrieval is backed by Chroma or FAISS.
+
+```text
+Application
+     │
+     ▼
+RetrieverProvider
+     │
+     ├── ChromaRetriever
+     │
+     └── FAISSRetriever
+```
+
+---
+
+## 🧠 RAG-Based Question Answering
+
+Question answering follows a retrieval-augmented generation flow:
+
+```text
+User Question
+      │
+      ▼
+Generate Query Embedding
+      │
+      ▼
+Vector Similarity Search
+      │
+      ▼
+Top-K Transcript Chunks
+      │
+      ▼
+Build Context
+      │
+      ▼
+LLM Prompt
+      │
+      ▼
+Generated Answer
+```
+
+Only the most relevant transcript chunks are provided as context to the language model.
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
 |---|---|
-| `application/` | Application orchestration |
-| `capabilities/` | User-facing AI capabilities |
-| `ingestion/` | YouTube transcript extraction |
-| `processing/` | Transcript processing and chunking |
-| `retrieval/` | Vector storage and similarity search |
-| `ai/` | AI provider abstractions and implementations |
-| `ui/` | Gradio web interface |
-| `config.py` | Environment-based runtime configuration |
-| `tests/` | Automated tests |
+| Language | Python 3.12 |
+| Generative AI | IBM watsonx.ai / Local LLM |
+| Local AI Runtime | Ollama |
+| Embeddings | Local / IBM watsonx.ai |
+| Vector Store | Chroma / FAISS |
+| AI Framework | LangChain Core |
+| Text Splitting | LangChain Text Splitters |
+| YouTube Transcripts | youtube-transcript-api |
+| UI | Gradio |
+| Configuration | python-dotenv |
+| HTTP Client | requests |
 
 ---
 
 ## ⚙️ Configuration
 
-Runtime configuration is managed through environment variables rather than hardcoded provider-specific values.
-
 Create a local `.env` file based on `.env.example`.
 
-Example local configuration:
+### Provider Selection
 
 ```env
-# =============================================================================
-# AI Provider Selection
-# =============================================================================
-
 AI_PROVIDER=local
 EMBEDDING_PROVIDER=local
+RETRIEVAL_PROVIDER=chroma
+```
 
+### Local LLM
 
-# =============================================================================
-# Local LLM Provider
-# =============================================================================
-
+```env
 LOCAL_LLM_BASE_URL=http://localhost:11434
 LOCAL_LLM_MODEL=llama3.2:3b
 LOCAL_LLM_TIMEOUT=120
+```
 
+### Local Embeddings
 
-# =============================================================================
-# Local Embedding Provider
-# =============================================================================
+```env
+LOCAL_EMBEDDING_MODEL=nomic-embed-text
+```
 
-LOCAL_EMBEDDING_MODEL=
+### Chroma
 
+```env
+CHROMA_PERSIST_DIRECTORY=./chroma_data
+CHROMA_COLLECTION_NAME=youtube_transcripts
+```
 
-# =============================================================================
-# IBM watsonx.ai Provider
-# =============================================================================
+### IBM watsonx.ai
 
+```env
 WATSONX_URL=
 WATSONX_PROJECT_ID=
 WATSONX_API_KEY=
 WATSONX_MODEL_ID=
 WATSONX_EMBEDDING_MODEL_ID=
+```
 
+### Generation
 
-# =============================================================================
-# Generation Configuration
-# =============================================================================
-
+```env
 MAX_NEW_TOKENS=900
 DECODING_METHOD=greedy
+```
 
+### Application
 
-# =============================================================================
-# Application
-# =============================================================================
-
+```env
 HOST=0.0.0.0
 PORT=7860
 ```
 
-> Keep `.env` local and never commit credentials or other environment-specific secrets.
-
 ---
 
-## 🛠️ Installation
+## 🚀 Getting Started
 
-Clone the repository:
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/genai-youtube-analyzer.git
+git clone https://github.com/mihirjha/genai-youtube-analyzer.git
 cd genai-youtube-analyzer
 ```
 
-Create and activate a virtual environment:
+### 2. Create a Virtual Environment
 
-```bash
+Windows PowerShell:
+
+```powershell
 python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-Install dependencies:
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Configure environment variables:
+### 4. Configure Environment
 
-```bash
-copy .env.example .env
-```
-
-On Linux/macOS:
-
-```bash
-cp .env.example .env
-```
-
-Update `.env` with the desired AI providers and model configuration.
-
----
-
-## ▶️ Running the Application
-
-Start the application with:
-
-```bash
-python run.py
-```
-
-The Gradio interface will be available at:
+Copy:
 
 ```text
-http://localhost:7860
+.env.example
 ```
+
+to:
+
+```text
+.env
+```
+
+Then configure the required provider settings.
+
+### 5. Start the Application
+
+```bash
+python main.py
+```
+
+The Gradio application will start on the configured host and port.
 
 ---
 
-## 🔄 Typical Usage
+## 🖥️ Example Usage
 
-1. Enter a YouTube video URL.
-2. Process the video transcript.
-3. Generate a summary.
-4. Ask questions about the video.
-5. The application retrieves relevant transcript chunks.
-6. The configured LLM generates an answer using the retrieved context.
+### Step 1 — Process a YouTube Video
+
+Provide a YouTube URL through the application.
+
+Example:
+
+```text
+https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+The application:
+
+1. Extracts the video ID.
+2. Fetches the English transcript.
+3. Processes the transcript.
+4. Splits the transcript into chunks.
+5. Generates embeddings.
+6. Indexes the chunks in the configured vector store.
+
+### Step 2 — Generate a Summary
+
+The processed transcript is passed to the configured LLM provider to generate a concise summary.
+
+### Step 3 — Ask Questions
+
+Enter a natural-language question about the video.
+
+The application retrieves relevant transcript chunks and uses them as context for the LLM.
+
+---
+
+## 🔄 Switching Vector Stores
+
+The retrieval implementation can be changed through configuration without modifying application code.
+
+### Chroma
+
+```env
+RETRIEVAL_PROVIDER=chroma
+```
+
+### FAISS
+
+```env
+RETRIEVAL_PROVIDER=faiss
+```
+
+The application uses the same `RetrieverProvider` interface for both implementations.
 
 ---
 
 ## 🧪 Testing
+
+The project includes tests for core application areas:
+
+```text
+tests/
+├── test_youtube.py
+├── test_transcript.py
+└── test_retrieval.py
+```
 
 Run the test suite with:
 
@@ -445,138 +513,102 @@ Run the test suite with:
 pytest
 ```
 
-The test structure covers key application components including:
-
-- YouTube transcript extraction
-- Transcript processing
-- Retrieval behavior
-
 ---
 
 ## 📦 Dependencies
 
-Key technologies used by the project:
+Key direct dependencies include:
 
-- Python
-- LangChain
-- FAISS
-- YouTube Transcript API
-- IBM watsonx.ai
-- Gradio
-- Requests
-- python-dotenv
+```text
+youtube-transcript-api==1.2.1
 
-See [`requirements.txt`](requirements.txt) for the pinned dependency versions.
+langchain-core==1.6.2
+langchain-text-splitters==1.1.2
+
+langchain-chroma==1.1.0
+chromadb==1.5.0
+langchain-community==0.4.2
+faiss-cpu==1.12.0
+onnxruntime==1.24.3
+
+ibm-watsonx-ai==1.7.1
+langchain-ibm==1.1.0
+
+gradio==6.26.0
+
+python-dotenv==1.0.1
+requests==2.32.3
+```
+
+See [`requirements.txt`](requirements.txt) for the complete dependency specification.
 
 ---
 
-## 🔐 Security & Configuration Practices
+## 🔐 Security
 
-The project follows environment-based configuration for runtime and provider settings.
+Sensitive configuration should never be committed to source control.
 
-Sensitive values such as:
+The project uses environment variables for:
 
-- IBM API keys
+- IBM watsonx.ai API credentials
 - Project identifiers
 - Provider endpoints
 - Model configuration
+- Runtime configuration
 
-should be supplied through environment variables and must not be committed to source control.
+The `.env` file should remain local.
 
-The `.gitignore` configuration excludes local environment files while keeping `.env.example` available as a configuration template.
+```gitignore
+.env
+.env.*
+!.env.example
+```
+
+Generated Chroma data is also excluded from version control:
+
+```gitignore
+chroma_data/
+```
 
 ---
 
-## 🧭 Architecture Evolution
+## 🎯 Design Principles
 
-The project is intentionally structured to evolve beyond a single AI provider.
+This project demonstrates several production-oriented software architecture principles:
 
-### Phase 1 — Local Development
+- **Separation of concerns**
+- **Provider abstraction**
+- **Dependency inversion**
+- **Configuration-driven behavior**
+- **Pluggable vector stores**
+- **Pluggable AI providers**
+- **Reusable application services**
+- **Retrieval-augmented generation**
+- **Environment-based runtime configuration**
+- **Clear separation between application capabilities and infrastructure**
 
-```text
-Local AI Runtime
-      │
-      ├── Local LLM
-      └── Local Embeddings
-             │
-             ▼
-           FAISS
-```
-
-Goal: develop and debug AI application behavior locally without depending on paid inference APIs.
-
-### Phase 2 — Provider Abstraction
-
-Introduce stable interfaces:
-
-```text
-LLMProvider
-EmbeddingProvider
-```
-
-Application capabilities no longer depend directly on specific AI providers.
-
-### Phase 3 — Cloud AI
-
-Add IBM watsonx.ai implementations:
-
-```text
-Application
-    │
-    ▼
-Provider Interfaces
-    │
-    ├── Local
-    └── IBM watsonx.ai
-```
-
-### Phase 4 — Deployment
-
-The same application can be deployed with environment-specific configuration without changing the core application logic.
-
-### Phase 5 — AI Infrastructure Experiments
-
-The architecture provides a foundation for experimenting with:
-
-- Different LLMs
-- Different embedding models
-- Different vector stores
-- Different AI providers
-- Local versus cloud inference
-- Retrieval strategies
-- Production deployment patterns
+The architecture allows the AI provider, embedding provider, and retrieval implementation to evolve independently.
 
 ---
 
-## 💡 Key Engineering Concepts
+## 💼 Portfolio Focus
 
-This project demonstrates several practical AI engineering and software architecture patterns:
+This project demonstrates practical Generative AI engineering beyond a single-model prototype.
 
-- Provider abstraction
-- Dependency inversion
-- Factory pattern
+Key engineering concepts include:
+
+- Generative AI application architecture
+- Retrieval-Augmented Generation (RAG)
+- Semantic search
+- Vector databases
+- Embedding providers
+- LLM provider abstraction
+- Local AI inference
+- IBM watsonx.ai integration
+- LangChain-based AI orchestration
 - Configuration-driven architecture
-- Semantic retrieval
-- Vector search
-- Retrieval-Augmented Generation
-- LLM integration
-- Embedding integration
-- Application/service separation
-- AI infrastructure decoupling
-- Environment-based configuration
-- Local-to-cloud portability
-
----
-
-## 🎯 Learning Objectives
-
-This project demonstrates how a traditional application can integrate modern generative AI capabilities while maintaining clean architectural boundaries.
-
-The primary architectural goal is:
-
-> **Keep application capabilities independent from AI infrastructure.**
-
-This allows the same application design to evolve from local experimentation to cloud-based AI services without requiring a fundamental rewrite.
+- Modular Python application design
+- Multiple interchangeable infrastructure providers
 
 ---
 
@@ -584,11 +616,11 @@ This allows the same application design to evolve from local experimentation to 
 
 **Mihir Jha**
 
-Software Architect | AI Engineering | Multi-Cloud Solutions
+**Software Architect | AI Engineering | Multi-Cloud Solutions**
 
-- GitHub: https://github.com/
-- LinkedIn: https://www.linkedin.com/
-- Enterprise AI Engineering: https://www.linkedin.com/
+- GitHub: https://github.com/mihirjha
+- LinkedIn: https://www.linkedin.com/in/mihirjha/
+- Enterprise AI Engineering: https://enterpriseai.handbook.mihirkjha.com/
 
 ---
 

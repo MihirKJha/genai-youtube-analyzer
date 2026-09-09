@@ -11,9 +11,8 @@ Run the YouTube RAG Assistant with:
 
 import logging
 
-from logging_config import configure_logging
-
 from app.config import HOST, PORT, SHARE
+from app.logging_config import configure_logging
 from app.ui.gradio_app import create_app
 
 configure_logging()
