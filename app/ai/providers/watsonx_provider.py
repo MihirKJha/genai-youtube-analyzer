@@ -5,6 +5,8 @@ Provides text generation through IBM watsonx.ai while exposing
 the application-level LLMProvider interface.
 """
 
+import logging
+
 from ibm_watsonx_ai import Credentials
 from ibm_watsonx_ai.foundation_models import Model
 from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
@@ -19,6 +21,8 @@ from app.config import (
     WATSONX_PROJECT_ID,
     WATSONX_URL,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class WatsonxLLMProvider(LLMProvider):
@@ -38,6 +42,10 @@ class WatsonxLLMProvider(LLMProvider):
         ]
 
         if missing_settings:
+            logger.error(
+                "Missing Watsonx configuration: %s", ", ".join(missing_settings)
+            )
+
             raise RuntimeError(
                 "Missing Watsonx configuration: " + ", ".join(missing_settings)
             )
@@ -71,4 +79,6 @@ class WatsonxLLMProvider(LLMProvider):
         Returns:
             Generated text response.
         """
+        logger.info("Invoking watsonx.ai llm with prompt: %s", prompt)
+
         return self.llm.invoke(prompt)

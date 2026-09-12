@@ -5,9 +5,12 @@ Responsible for extracting a YouTube video ID from a URL
 and retrieving the video's English transcript.
 """
 
+import logging
 import re
 
 from youtube_transcript_api import YouTubeTranscriptApi
+
+logger = logging.getLogger(__name__)
 
 
 def get_video_id(url: str) -> str | None:
@@ -22,6 +25,7 @@ def get_video_id(url: str) -> str | None:
     Returns:
         The YouTube video ID if found, otherwise None.
     """
+    logger.info("Fetching YouTube video ID from URL: %s", url)
 
     pattern = r"(?:youtube\.com/watch\?v=|youtu\.be/)" r"([a-zA-Z0-9_-]{11})"
 
@@ -41,12 +45,17 @@ def get_transcript(video_id: str):
     try:
         api = YouTubeTranscriptApi()
 
+        logger.info("Fetching transcript for video: %s", video_id)
+
         return api.fetch(
             video_id,
-            languages=["en"],
+            languages=["en-US", "en"],
         )
 
     except Exception as exc:
+
+        logger.exception("Failed to fetch transcript for video: %s", video_id)
+
         raise RuntimeError(
             f"Unable to fetch transcript for video '{video_id}'."
         ) from exc

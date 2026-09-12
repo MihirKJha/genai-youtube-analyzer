@@ -2,9 +2,13 @@
 Question-answering service for YouTube transcript retrieval.
 """
 
+import logging
+
 from app.ai.base_provider import LLMProvider
 from app.prompts import QA_PROMPT
 from app.retrieval.base_retriever import RetrieverProvider
+
+logger = logging.getLogger(__name__)
 
 
 def answer_question(
@@ -36,5 +40,7 @@ def answer_question(
         context=context,
         question=question,
     )
+
+    logger.info("Generating answer with prompt %s", prompt)
 
     return provider.generate(prompt)

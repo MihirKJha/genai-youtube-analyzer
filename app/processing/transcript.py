@@ -6,7 +6,11 @@ retrieval-friendly text representation and splitting the transcript
 into overlapping chunks.
 """
 
+import logging
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+logger = logging.getLogger(__name__)
 
 
 def process(transcript):
@@ -24,6 +28,7 @@ def process(transcript):
     Returns:
         A single formatted transcript string.
     """
+    logger.info("Processing YouTube video transcript")
 
     processed_transcript = ""
 
@@ -49,6 +54,7 @@ def chunk_transcript(
     Returns:
         A list of transcript chunks.
     """
+    logger.info("Chunking YouTube video transcript")
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,

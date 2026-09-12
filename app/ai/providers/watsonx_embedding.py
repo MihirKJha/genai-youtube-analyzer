@@ -5,6 +5,8 @@ Provides document and query embeddings through IBM watsonx.ai
 while exposing the application-level EmbeddingProvider interface.
 """
 
+import logging
+
 from langchain_ibm import WatsonxEmbeddings
 
 from app.ai.base_embedding import EmbeddingProvider
@@ -14,6 +16,8 @@ from app.config import (
     WATSONX_PROJECT_ID,
     WATSONX_URL,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class WatsonxEmbeddingProvider(EmbeddingProvider):
@@ -33,6 +37,11 @@ class WatsonxEmbeddingProvider(EmbeddingProvider):
         ]
 
         if missing_settings:
+            logger.error(
+                "Missing Watsonx embedding configuration:  %s",
+                ", ".join(missing_settings),
+            )
+
             raise RuntimeError(
                 "Missing Watsonx embedding configuration: "
                 + ", ".join(missing_settings)
@@ -57,6 +66,9 @@ class WatsonxEmbeddingProvider(EmbeddingProvider):
         Returns:
             Embedding vectors.
         """
+
+        logger.info("Generating watsonx.ai embeddings for documents")
+
         return self.embeddings.embed_documents(texts)
 
     def embed_query(self, text: str) -> list[float]:
@@ -69,4 +81,6 @@ class WatsonxEmbeddingProvider(EmbeddingProvider):
         Returns:
             Embedding vector.
         """
+        logger.info("Generating watsonx.ai embeddings for query")
+
         return self.embeddings.embed_query(text)

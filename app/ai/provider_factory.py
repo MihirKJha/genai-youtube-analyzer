@@ -5,10 +5,14 @@ Creates the configured language-model provider without exposing
 provider-specific implementation details to the application layer.
 """
 
+import logging
+
 from app.ai.base_provider import LLMProvider
 from app.ai.providers.local_provider import LocalLLMProvider
 from app.ai.providers.watsonx_provider import WatsonxLLMProvider
 from app.config import AI_PROVIDER
+
+logger = logging.getLogger(__name__)
 
 
 def create_llm_provider() -> LLMProvider:
@@ -22,9 +26,11 @@ def create_llm_provider() -> LLMProvider:
         RuntimeError: If the configured provider is unsupported.
     """
     if AI_PROVIDER == "local":
+        logger.info("Using Local LLM provider")
         return LocalLLMProvider()
 
     if AI_PROVIDER == "watsonx":
+        logger.info("Using Watsonx LLM provider")
         return WatsonxLLMProvider()
 
     raise RuntimeError(f"Unsupported AI provider: '{AI_PROVIDER}'.")

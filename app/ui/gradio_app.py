@@ -85,6 +85,7 @@ def create_app():
                 return status, transcript
 
             except Exception as exc:
+                logger.exception("Processing of YouTube video failed")
                 return f"Error: {exc}", ""
 
         def generate_summary():
@@ -94,6 +95,7 @@ def create_app():
                 return service.generate_summary()
 
             except Exception as exc:
+                logger.exception("Video summary generation failed")
                 return f"Error: {exc}"
 
         def generate_answer(question_text):
@@ -103,6 +105,7 @@ def create_app():
                 return service.answer_question(question_text)
 
             except Exception as exc:
+                logger.exception("Question answering failed")
                 return f"Error: {exc}"
 
         process_button.click(

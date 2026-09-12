@@ -47,11 +47,12 @@ class YouTubeAnalyzerService:
             Status message describing the processing result.
         """
 
-        logger.info("Creating UI Components")
+        logger.info("Processing YouTube video: %s", url)
 
         video_id = get_video_id(url)
 
         if not video_id:
+            logger.error("Invalid YouTube URL: %s", url)
             raise ValueError("Invalid YouTube URL.")
 
         transcript = get_transcript(video_id)
@@ -76,6 +77,7 @@ class YouTubeAnalyzerService:
         """
 
         if not self.processed_transcript:
+            logger.error("Please process a YouTube video first.")
             raise RuntimeError("Please process a YouTube video first.")
 
         return self.processed_transcript
@@ -110,9 +112,11 @@ class YouTubeAnalyzerService:
         """
 
         if self.processed_transcript is None:
+            logger.error("Please process a YouTube video first.")
             raise RuntimeError("Please process a YouTube video first.")
 
         if not question.strip():
+            logger.error("Empty question provided.")
             raise ValueError("Please enter a question.")
 
         return answer_question(
