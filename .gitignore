@@ -126,3 +126,7 @@ models/
 # =============================================================================
 
 chroma_persist/
+
+
+# Gradio local/runtime files
+.gradio/
