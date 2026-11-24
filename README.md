@@ -1,7 +1,12 @@
 # GenAI YouTube Analyzer
 
-AI-powered YouTube content analyzer that extracts video transcripts, generates concise summaries, and answers natural-language questions using semantic retrieval, FAISS, Chroma, LangChain, and IBM watsonx.ai.
+<p align="center">
+  <img src="docs/images/project-preview.png" alt="GenAI YouTube Analyzer Preview" width="100%" />
+</p>
 
+<p align="center">
+   AI-powered YouTube content analyzer that extracts video transcripts, generates concise summaries, and answers natural-language questions using semantic retrieval, FAISS, Chroma, LangChain, and IBM watsonx.ai.
+</p>
 ## ✨ Features
 
 - 🎥 **YouTube Transcript Extraction**
